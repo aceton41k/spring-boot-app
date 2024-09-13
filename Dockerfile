@@ -1,14 +1,17 @@
-# Используем базовый образ OpenJDK
-FROM openjdk:17-jdk-slim
+FROM maven:3.8.7-openjdk-18-slim AS build
 
-# Создаем рабочую директорию в контейнере
 WORKDIR /app
 
-# Копируем JAR-файл приложения в рабочую директорию
-COPY build/libs/spring-boot-app-1.0.jar /app/spring-boot-app-1.0.jar
+COPY . /app
 
-# Открываем порт, на котором будет работать приложение
+RUN mvn clean package
+
+FROM openjdk:17-jdk-slim
+
+WORKDIR /app
+
+COPY --from=build /app/target/spring-0.0.1-SNAPSHOT.jar /app/spring-0.0.1-SNAPSHOT.jar
+
 EXPOSE 8080
 
-# Указываем команду для запуска приложения
-ENTRYPOINT ["java", "-jar", "/app/spring-boot-app-1.0.jar"]
+ENTRYPOINT ["java", "-jar", "/app/spring-0.0.1-SNAPSHOT.jar"]
