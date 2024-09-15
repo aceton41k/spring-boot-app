@@ -7,7 +7,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
@@ -18,8 +20,17 @@ public class PostService {
     @Autowired
     private PostRepository postRepository;
 
-    public PostDto createPost(Post post) {
-        return convertToDto(postRepository.save(post));
+    public ResponseEntity<PostDto> createPost(Post post) {
+
+        Post savedPost = postRepository.save(post);
+
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(savedPost.getId())
+                .toUri();
+
+        return ResponseEntity.created(location)
+                .body(convertToDto(savedPost));
     }
 
     public ResponseEntity<PostDto> updatePost(int id, Post updatedPost) {
