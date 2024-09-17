@@ -1,4 +1,4 @@
-FROM maven:3.8.7-openjdk-18-slim AS build
+FROM maven:3.9-eclipse-temurin-22-alpine AS build
 
 WORKDIR /app
 
@@ -6,7 +6,7 @@ COPY . /app
 
 RUN mvn clean package
 
-FROM openjdk:17-jdk-slim
+FROM eclipse-temurin:22-jdk-alpine
 
 WORKDIR /app
 
