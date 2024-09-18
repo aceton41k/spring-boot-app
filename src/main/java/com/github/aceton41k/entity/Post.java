@@ -23,6 +23,7 @@ public class Post {
 
     private String title;
 
+    @Column(length = 1000)
     private String message;
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.REMOVE, orphanRemoval = true)
