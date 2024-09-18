@@ -4,6 +4,8 @@ import com.github.aceton41k.dto.PostDto;
 import com.github.aceton41k.entity.Post;
 import com.github.aceton41k.repository.PostRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -46,8 +48,8 @@ public class PostService {
         }
     }
 
-    public List<PostDto> getAllPosts() {
-        return postRepository.findAll().stream().map(this::convertToDto).toList();
+    public Page<PostDto> getAllPosts(Pageable pageable) {
+        return postRepository.findAll(pageable).map(this::convertToDto);
     }
 
     public ResponseEntity<?> getPostById(int id) {
