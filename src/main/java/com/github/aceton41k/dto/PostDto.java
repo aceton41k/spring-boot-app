@@ -9,10 +9,11 @@ import java.util.Date;
 @Getter
 @Setter
 public class PostDto {
-    private String id;
+    private Long id;
     private String title;
     private String message;
     private Instant createdAt;
     private Instant updatedAt;
-    private String authorId;
+    private Long createdBy;
+    private Long modifiedBy;
 }

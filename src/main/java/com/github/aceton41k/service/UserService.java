@@ -1,9 +1,7 @@
 package com.github.aceton41k.service;
 
 
-import com.github.aceton41k.dto.CommentDto;
 import com.github.aceton41k.dto.UserDto;
-import com.github.aceton41k.entity.Comment;
 import com.github.aceton41k.entity.User;
 import com.github.aceton41k.repository.UserRepository;
 import org.springframework.http.ResponseEntity;

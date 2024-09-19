@@ -8,9 +8,10 @@ import java.time.Instant;
 @Getter
 @Setter
 public class CommentDto {
-    private String id;
+    private Long id;
     private String message;
     private Instant createdAt;
     private Instant updatedAt;
-    private String createdBy;
+    private Long createdBy;
+    private Long modifiedBy;
 }
