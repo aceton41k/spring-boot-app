@@ -43,12 +43,12 @@ public class PostController {
     }
 
     @GetMapping("/posts/{id}")
-    public ResponseEntity<?> getPostById(@PathVariable("id") int id) {
+    public ResponseEntity<?> getPostById(@PathVariable("id") String id) {
         return postService.getPostById(id);
     }
 
     @DeleteMapping("/posts/{id}")
-    public ResponseEntity<Void> deletePost(@PathVariable("id") int id) {
+    public ResponseEntity<Void> deletePost(@PathVariable("id") String id) {
         return postService.deletePost(id);
     }
 

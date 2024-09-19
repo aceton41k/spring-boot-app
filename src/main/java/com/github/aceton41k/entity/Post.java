@@ -1,12 +1,16 @@
 package com.github.aceton41k.entity;
 
-import jakarta.persistence.*;
-import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
+import lombok.*;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
+
+import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 @AllArgsConstructor
@@ -14,26 +18,23 @@ import java.util.List;
 @Getter
 @Setter
 @With
-@Entity
-@Table(name = "posts")
+@Document(collection = "posts")
 public class Post {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private String id;
 
     private String title;
 
-    @Column(length = 1000)
     private String message;
 
-    @OneToMany(mappedBy = "post", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<Comment> comments = new ArrayList<>();
 
-    @CreationTimestamp
-    @Column(updatable = false, name = "created_at")
-    private Date createdAt;
+    @CreatedDate
+    private Instant createdAt;
 
-    @UpdateTimestamp
-    @Column(name = "updated_at")
-    private Date updatedAt;
+    @LastModifiedDate
+    private Instant updatedAt;
+
+    @CreatedBy
+    private String createdBy;
 }

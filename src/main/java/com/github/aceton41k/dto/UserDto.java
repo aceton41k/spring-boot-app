@@ -12,7 +12,7 @@ import java.util.List;
 @Getter
 @Setter
 public class UserDto implements UserDetails {
-    private Integer id;
+    private String id;
     private String fullName;
     private String email;
     private Date createdAt;

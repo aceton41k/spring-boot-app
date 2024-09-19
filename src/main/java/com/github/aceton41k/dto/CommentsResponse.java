@@ -2,6 +2,7 @@ package com.github.aceton41k.dto;
 
 import lombok.*;
 
+import java.time.Instant;
 import java.util.List;
 
 @Getter

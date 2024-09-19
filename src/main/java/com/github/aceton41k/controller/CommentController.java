@@ -15,12 +15,12 @@ public class CommentController {
     private CommentService commentService;
 
     @GetMapping
-    public ResponseEntity<CommentsResponse> getCommentsByPostId(@PathVariable Integer postId) {
+    public ResponseEntity<CommentsResponse> getCommentsByPostId(@PathVariable String postId) {
         return commentService.getCommentsByPostId(postId);
     }
 
     @PostMapping
-    public ResponseEntity<?> addComment(@PathVariable Integer postId, @RequestBody Comment comment) {
+    public ResponseEntity<?> addComment(@PathVariable String postId, @RequestBody Comment comment) {
       return commentService.addComment(postId, comment);
     }
 

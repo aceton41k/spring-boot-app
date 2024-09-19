@@ -52,14 +52,14 @@ public class PostService {
         return postRepository.findAll(pageable).map(this::convertToDto);
     }
 
-    public ResponseEntity<?> getPostById(int id) {
+    public ResponseEntity<?> getPostById(String id) {
         Optional<Post> post = postRepository.findById(id);
         if (post.isPresent())
             return ResponseEntity.ok().body(convertToDto(post.get()));
         else return postNotFoundResponse(id);
     }
 
-    public ResponseEntity<Void> deletePost(int id) {
+    public ResponseEntity<Void> deletePost(String id) {
         if (postRepository.existsById(id)) {
             postRepository.deleteById(id);
             return ResponseEntity.noContent().build();
@@ -81,7 +81,7 @@ public class PostService {
         return ResponseEntity.noContent().build();
     }
 
-    public boolean existsById(int id) {
+    public boolean existsById(String id) {
         return postRepository.existsById(id);
     }
 
@@ -92,12 +92,13 @@ public class PostService {
         dto.setMessage(post.getMessage());
         dto.setCreatedAt(post.getCreatedAt());
         dto.setUpdatedAt(post.getUpdatedAt());
+        dto.setAuthorId(post.getCreatedBy());
         return dto;
     }
 
-    protected ResponseEntity<?> postNotFoundResponse(Integer postId) {
+    protected ResponseEntity<?> postNotFoundResponse(String postId) {
         var error = new HashMap<>();
-        error.put("error", "Post with id %d was not found".formatted(postId));
+        error.put("error", "Post with id %s was not found".formatted(postId));
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 }

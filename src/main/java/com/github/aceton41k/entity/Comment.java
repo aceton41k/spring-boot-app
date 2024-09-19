@@ -1,35 +1,35 @@
 package com.github.aceton41k.entity;
 
-import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.time.Instant;
 import java.util.Date;
 
 @Getter
 @Setter
-@Entity
-@Table(name = "comments")
+@Document(collection = "comments")
 public class Comment {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private String id;
 
-    @ManyToOne
-    @JoinColumn(name = "post_id", nullable = false)
     private Post post;
 
     private String message;
 
-    @CreationTimestamp
-    @Column(updatable = false, name = "created_at")
-    private Date createdAt;
+    @CreatedDate
+    private Instant createdAt;
 
-    @UpdateTimestamp
-    @Column(name = "updated_at")
-    private Date updatedAt;
+    @LastModifiedDate
+    private Instant updatedAt;
+
+    @CreatedBy
+    private String createdBy;
 
 }

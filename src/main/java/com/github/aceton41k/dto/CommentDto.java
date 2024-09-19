@@ -3,13 +3,14 @@ package com.github.aceton41k.dto;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.Date;
+import java.time.Instant;
 
 @Getter
 @Setter
 public class CommentDto {
-    private Integer id;
+    private String id;
     private String message;
-    private Date createdAt;
-    private Date updatedAt;
+    private Instant createdAt;
+    private Instant updatedAt;
+    private String createdBy;
 }

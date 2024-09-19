@@ -29,7 +29,7 @@ public class CommentService {
     @Autowired
     private PostService postService;
 
-    public ResponseEntity<CommentsResponse> getCommentsByPostId(Integer postId) {
+    public ResponseEntity<CommentsResponse> getCommentsByPostId(String postId) {
         List<Comment> comments = commentRepository.findByPostId(postId);
         List<CommentDto> commentDtos = comments.stream()
                 .map(this::convertToDto)
@@ -39,7 +39,7 @@ public class CommentService {
                 .withTotal(comments.size()));
     }
 
-    public ResponseEntity<?> addComment(Integer postId, Comment comment) {
+    public ResponseEntity<?> addComment(String postId, Comment comment) {
         if (!postService.existsById(postId)) {
             return postService.postNotFoundResponse(postId);
         }
@@ -55,7 +55,7 @@ public class CommentService {
         Post post;
 
         if (postOptional.isEmpty()) {
-            return postService.postNotFoundResponse(postId);
+            return postService.postNotFoundResponse(String.valueOf(postId));
         } else
             post = postOptional.get();
 
@@ -75,7 +75,7 @@ public class CommentService {
 
     public ResponseEntity<?> deleteComment(Integer postId, Integer commentId) {
         if (!postRepository.existsById(postId)) {
-            return postService.postNotFoundResponse(postId);
+            return postService.postNotFoundResponse(String.valueOf(postId));
         }
 
         if (!commentRepository.existsById(commentId)) {
@@ -91,6 +91,7 @@ public class CommentService {
         dto.setMessage(comment.getMessage());
         dto.setCreatedAt(comment.getCreatedAt());
         dto.setUpdatedAt(comment.getUpdatedAt());
+        dto.setCreatedBy(comment.getCreatedBy());
         return dto;
     }
 
