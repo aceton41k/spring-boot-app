@@ -15,22 +15,22 @@ public class CommentController {
     private CommentService commentService;
 
     @GetMapping
-    public ResponseEntity<CommentsResponse> getCommentsByPostId(@PathVariable Integer postId) {
+    public ResponseEntity<CommentsResponse> getCommentsByPostId(@PathVariable Long postId) {
         return commentService.getCommentsByPostId(postId);
     }
 
     @PostMapping
-    public ResponseEntity<?> addComment(@PathVariable Integer postId, @RequestBody Comment comment) {
+    public ResponseEntity<?> addComment(@PathVariable Long postId, @RequestBody Comment comment) {
       return commentService.addComment(postId, comment);
     }
 
     @PutMapping("/{commentId}")
-    public ResponseEntity<?> updateComment(@PathVariable Integer postId, @PathVariable Integer commentId, @RequestBody Comment comment) {
+    public ResponseEntity<?> updateComment(@PathVariable long postId, @PathVariable long commentId, @RequestBody Comment comment) {
         return commentService.updateComment(postId, commentId, comment);
     }
 
     @DeleteMapping("/{commentId}")
-    public ResponseEntity<?> deleteComment(@PathVariable Integer postId, @PathVariable Integer commentId) {
+    public ResponseEntity<?> deleteComment(@PathVariable long postId, @PathVariable long commentId) {
         return commentService.deleteComment(postId, commentId);
     }
 }

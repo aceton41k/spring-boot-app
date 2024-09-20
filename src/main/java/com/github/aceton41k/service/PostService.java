@@ -35,7 +35,7 @@ public class PostService {
                 .body(convertToDto(savedPost));
     }
 
-    public ResponseEntity<PostDto> updatePost(int id, Post updatedPost) {
+    public ResponseEntity<PostDto> updatePost(Long id, Post updatedPost) {
         Optional<Post> existingPostOptional = postRepository.findById(id);
         if (existingPostOptional.isPresent()) {
             Post existingPost = existingPostOptional.get();
@@ -52,14 +52,14 @@ public class PostService {
         return postRepository.findAll(pageable).map(this::convertToDto);
     }
 
-    public ResponseEntity<?> getPostById(int id) {
+    public ResponseEntity<?> getPostById(Long id) {
         Optional<Post> post = postRepository.findById(id);
         if (post.isPresent())
             return ResponseEntity.ok().body(convertToDto(post.get()));
         else return postNotFoundResponse(id);
     }
 
-    public ResponseEntity<Void> deletePost(int id) {
+    public ResponseEntity<Void> deletePost(Long id) {
         if (postRepository.existsById(id)) {
             postRepository.deleteById(id);
             return ResponseEntity.noContent().build();
@@ -68,12 +68,12 @@ public class PostService {
         }
     }
 
-    public ResponseEntity<Void> deletePosts(List<Integer> ids) {
+    public ResponseEntity<Void> deletePosts(List<Long> ids) {
         if (ids == null || ids.isEmpty()) {
             return ResponseEntity.badRequest().build();
         }
 
-        for (Integer id : ids) {
+        for (Long id : ids) {
             if (postRepository.existsById(id)) {
                 postRepository.deleteById(id);
             }
@@ -81,7 +81,7 @@ public class PostService {
         return ResponseEntity.noContent().build();
     }
 
-    public boolean existsById(int id) {
+    public boolean existsById(Long id) {
         return postRepository.existsById(id);
     }
 
@@ -92,12 +92,14 @@ public class PostService {
         dto.setMessage(post.getMessage());
         dto.setCreatedAt(post.getCreatedAt());
         dto.setUpdatedAt(post.getUpdatedAt());
+        dto.setCreatedBy(post.getCreatedBy());
+        dto.setModifiedBy(post.getModifiedBy());
         return dto;
     }
 
-    protected ResponseEntity<?> postNotFoundResponse(Integer postId) {
+    protected ResponseEntity<?> postNotFoundResponse(Long postId) {
         var error = new HashMap<>();
-        error.put("error", "Post with id %d was not found".formatted(postId));
+        error.put("error", "Post with id %s was not found".formatted(postId));
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 }

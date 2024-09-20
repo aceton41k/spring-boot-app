@@ -1,22 +1,29 @@
 package com.github.aceton41k.entity;
 
+
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.util.Date;
+import java.time.Instant;
 
 @Getter
 @Setter
 @Entity
 @Table(name = "comments")
+@EntityListeners(AuditingEntityListener.class)
 public class Comment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Long id;
 
     @ManyToOne
     @JoinColumn(name = "post_id", nullable = false)
@@ -24,12 +31,19 @@ public class Comment {
 
     private String message;
 
-    @CreationTimestamp
+    @CreatedDate
     @Column(updatable = false, name = "created_at")
-    private Date createdAt;
+    private Instant createdAt;
 
-    @UpdateTimestamp
+    @LastModifiedBy
     @Column(name = "updated_at")
-    private Date updatedAt;
+    private Instant updatedAt;
+
+    @CreatedBy
+    private Long createdBy;
+
+    @LastModifiedDate
+    private Long modifiedBy;
+
 
 }

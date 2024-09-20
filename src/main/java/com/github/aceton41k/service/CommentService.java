@@ -29,7 +29,7 @@ public class CommentService {
     @Autowired
     private PostService postService;
 
-    public ResponseEntity<CommentsResponse> getCommentsByPostId(Integer postId) {
+    public ResponseEntity<CommentsResponse> getCommentsByPostId(Long postId) {
         List<Comment> comments = commentRepository.findByPostId(postId);
         List<CommentDto> commentDtos = comments.stream()
                 .map(this::convertToDto)
@@ -39,7 +39,7 @@ public class CommentService {
                 .withTotal(comments.size()));
     }
 
-    public ResponseEntity<?> addComment(Integer postId, Comment comment) {
+    public ResponseEntity<?> addComment(Long postId, Comment comment) {
         if (!postService.existsById(postId)) {
             return postService.postNotFoundResponse(postId);
         }
@@ -49,7 +49,7 @@ public class CommentService {
         return ResponseEntity.ok(savedComment);
     }
 
-    public ResponseEntity<?> updateComment(Integer postId, Integer commentId, Comment comment) {
+    public ResponseEntity<?> updateComment(Long postId, Long commentId, Comment comment) {
 
         Optional<Post> postOptional = postRepository.findById(postId);
         Post post;
@@ -73,7 +73,7 @@ public class CommentService {
         return ResponseEntity.ok(convertToDto(commentRepository.save(updatedComment)));
     }
 
-    public ResponseEntity<?> deleteComment(Integer postId, Integer commentId) {
+    public ResponseEntity<?> deleteComment(Long postId, Long commentId) {
         if (!postRepository.existsById(postId)) {
             return postService.postNotFoundResponse(postId);
         }
@@ -91,10 +91,11 @@ public class CommentService {
         dto.setMessage(comment.getMessage());
         dto.setCreatedAt(comment.getCreatedAt());
         dto.setUpdatedAt(comment.getUpdatedAt());
+        dto.setCreatedBy(comment.getCreatedBy());
         return dto;
     }
 
-    protected ResponseEntity<?> commentNotFoundResponse(Integer commentId) {
+    protected ResponseEntity<?> commentNotFoundResponse(Long commentId) {
         var error = new HashMap<>();
         error.put("error", "Comment with id %d was not found".formatted(commentId));
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);

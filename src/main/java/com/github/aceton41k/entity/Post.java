@@ -2,11 +2,14 @@ package com.github.aceton41k.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 @AllArgsConstructor
@@ -16,10 +19,11 @@ import java.util.List;
 @With
 @Entity
 @Table(name = "posts")
+@EntityListeners(AuditingEntityListener.class)
 public class Post {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Long id;
 
     private String title;
 
@@ -29,11 +33,17 @@ public class Post {
     @OneToMany(mappedBy = "post", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<Comment> comments = new ArrayList<>();
 
-    @CreationTimestamp
+    @CreatedDate
     @Column(updatable = false, name = "created_at")
-    private Date createdAt;
+    private Instant createdAt;
 
-    @UpdateTimestamp
+    @CreatedBy
+    private Long createdBy;
+
+    @LastModifiedDate
     @Column(name = "updated_at")
-    private Date updatedAt;
+    private Instant updatedAt;
+
+    @LastModifiedBy
+    private Long modifiedBy;
 }

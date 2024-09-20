@@ -30,7 +30,7 @@ public class PostController {
     }
 
     @PutMapping("/posts/{id}")
-    public ResponseEntity<PostDto> updatePost(@PathVariable("id") int id, @RequestBody Post updatedPost) {
+    public ResponseEntity<PostDto> updatePost(@PathVariable("id") long id, @RequestBody Post updatedPost) {
         return postService.updatePost(id, updatedPost);
     }
 
@@ -43,17 +43,17 @@ public class PostController {
     }
 
     @GetMapping("/posts/{id}")
-    public ResponseEntity<?> getPostById(@PathVariable("id") int id) {
+    public ResponseEntity<?> getPostById(@PathVariable("id") Long id) {
         return postService.getPostById(id);
     }
 
     @DeleteMapping("/posts/{id}")
-    public ResponseEntity<Void> deletePost(@PathVariable("id") int id) {
+    public ResponseEntity<Void> deletePost(@PathVariable("id") Long id) {
         return postService.deletePost(id);
     }
 
     @DeleteMapping("/posts")
-    public ResponseEntity<Void> deletePosts(@RequestParam List<Integer> ids) {
+    public ResponseEntity<Void> deletePosts(@RequestParam List<Long> ids) {
         return postService.deletePosts(ids);
     }
 
