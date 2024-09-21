@@ -4,7 +4,7 @@ WORKDIR /app
 
 COPY . /app
 
-RUN mvn clean package
+RUN bash -c 'until mvn clean package; do echo "Retrying..."; sleep 5; done'
 
 FROM eclipse-temurin:22-jdk-alpine
 
