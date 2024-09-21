@@ -1,5 +1,6 @@
 package com.github.aceton41k.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
@@ -7,15 +8,18 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.Instant;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 
 @Getter
 @Setter
 public class UserDto implements UserDetails {
+    @Schema(example = "666")
     private Long id;
-    private String fullName;
+    @Schema(example = "cthulhu@rlyeh.bz")
     private String email;
+    @Schema(example = "Cthulhu")
+    private String fullName;
+
     private Instant createdAt;
     private Instant updatedAt;
 
@@ -26,7 +30,7 @@ public class UserDto implements UserDetails {
 
     @Override
     public String getPassword() {
-        return null;
+        return "hidden carefully";
     }
 
     @Override
