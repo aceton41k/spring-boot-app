@@ -2,7 +2,7 @@ package com.github.aceton41k.service;
 
 
 import com.github.aceton41k.dto.UserDto;
-import com.github.aceton41k.entity.User;
+import com.github.aceton41k.entity.UserEntity;
 import com.github.aceton41k.repository.UserRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -21,7 +21,7 @@ public class UserService {
     }
 
     public List<UserDto> allUsers() {
-        List<User> users = new ArrayList<>();
+        List<UserEntity> users = new ArrayList<>();
 
         userRepository.findAll().forEach(users::add);
 
@@ -31,12 +31,12 @@ public class UserService {
     public ResponseEntity<UserDto> me() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        User currentUser = (User) authentication.getPrincipal();
+        UserEntity currentUser = (UserEntity) authentication.getPrincipal();
 
         return ResponseEntity.ok(convertToDto(currentUser));
     }
 
-    private UserDto convertToDto(User user) {
+    private UserDto convertToDto(UserEntity user) {
         UserDto dto = new UserDto();
         dto.setId(user.getId());
         dto.setEmail(user.getEmail());

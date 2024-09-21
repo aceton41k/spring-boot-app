@@ -1,7 +1,7 @@
 package com.github.aceton41k.controller;
 
 import com.github.aceton41k.dto.CommentsResponse;
-import com.github.aceton41k.entity.Comment;
+import com.github.aceton41k.entity.CommentEntity;
 import com.github.aceton41k.service.CommentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -20,12 +20,12 @@ public class CommentController {
     }
 
     @PostMapping
-    public ResponseEntity<?> addComment(@PathVariable Long postId, @RequestBody Comment comment) {
+    public ResponseEntity<?> addComment(@PathVariable Long postId, @RequestBody CommentEntity comment) {
       return commentService.addComment(postId, comment);
     }
 
     @PutMapping("/{commentId}")
-    public ResponseEntity<?> updateComment(@PathVariable long postId, @PathVariable long commentId, @RequestBody Comment comment) {
+    public ResponseEntity<?> updateComment(@PathVariable long postId, @PathVariable long commentId, @RequestBody CommentEntity comment) {
         return commentService.updateComment(postId, commentId, comment);
     }
 

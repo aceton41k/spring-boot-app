@@ -2,8 +2,8 @@ package com.github.aceton41k.service;
 
 import com.github.aceton41k.dto.CommentDto;
 import com.github.aceton41k.dto.CommentsResponse;
-import com.github.aceton41k.entity.Comment;
-import com.github.aceton41k.entity.Post;
+import com.github.aceton41k.entity.CommentEntity;
+import com.github.aceton41k.entity.PostEntity;
 import com.github.aceton41k.repository.CommentRepository;
 import com.github.aceton41k.repository.PostRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -30,7 +30,7 @@ public class CommentService {
     private PostService postService;
 
     public ResponseEntity<CommentsResponse> getCommentsByPostId(Long postId) {
-        List<Comment> comments = commentRepository.findByPostId(postId);
+        List<CommentEntity> comments = commentRepository.findByPostId(postId);
         List<CommentDto> commentDtos = comments.stream()
                 .map(this::convertToDto)
                 .toList();
@@ -39,28 +39,28 @@ public class CommentService {
                 .withTotal(comments.size()));
     }
 
-    public ResponseEntity<?> addComment(Long postId, Comment comment) {
+    public ResponseEntity<?> addComment(Long postId, CommentEntity comment) {
         if (!postService.existsById(postId)) {
             return postService.postNotFoundResponse(postId);
         }
 
-        comment.setPost(new Post().withId(postId));
-        Comment savedComment = commentRepository.save(comment);
+        comment.setPost(new PostEntity().withId(postId));
+        CommentEntity savedComment = commentRepository.save(comment);
         return ResponseEntity.ok(savedComment);
     }
 
-    public ResponseEntity<?> updateComment(Long postId, Long commentId, Comment comment) {
+    public ResponseEntity<?> updateComment(Long postId, Long commentId, CommentEntity comment) {
 
-        Optional<Post> postOptional = postRepository.findById(postId);
-        Post post;
+        Optional<PostEntity> postOptional = postRepository.findById(postId);
+        PostEntity post;
 
         if (postOptional.isEmpty()) {
             return postService.postNotFoundResponse(postId);
         } else
             post = postOptional.get();
 
-        Optional<Comment> commentOptional = commentRepository.findById(commentId);
-        Comment updatedComment;
+        Optional<CommentEntity> commentOptional = commentRepository.findById(commentId);
+        CommentEntity updatedComment;
 
         if (commentOptional.isEmpty()) {
             return commentNotFoundResponse(commentId);
@@ -85,7 +85,7 @@ public class CommentService {
         return ResponseEntity.noContent().build();
     }
 
-    private CommentDto convertToDto(Comment comment) {
+    private CommentDto convertToDto(CommentEntity comment) {
         CommentDto dto = new CommentDto();
         dto.setId(comment.getId());
         dto.setMessage(comment.getMessage());

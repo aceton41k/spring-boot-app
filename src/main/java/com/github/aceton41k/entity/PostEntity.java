@@ -20,7 +20,7 @@ import java.util.List;
 @Entity
 @Table(name = "posts")
 @EntityListeners(AuditingEntityListener.class)
-public class Post {
+public class PostEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -31,7 +31,7 @@ public class Post {
     private String message;
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.REMOVE, orphanRemoval = true)
-    private List<Comment> comments = new ArrayList<>();
+    private List<CommentEntity> comments = new ArrayList<>();
 
     @CreatedDate
     @Column(updatable = false, name = "created_at")

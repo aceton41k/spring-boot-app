@@ -1,7 +1,7 @@
 package com.github.aceton41k.service;
 
 import com.github.aceton41k.dto.PostDto;
-import com.github.aceton41k.entity.Post;
+import com.github.aceton41k.entity.PostEntity;
 import com.github.aceton41k.repository.PostRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -22,9 +22,9 @@ public class PostService {
     @Autowired
     private PostRepository postRepository;
 
-    public ResponseEntity<PostDto> createPost(Post post) {
+    public ResponseEntity<PostDto> createPost(PostEntity post) {
 
-        Post savedPost = postRepository.save(post);
+        PostEntity savedPost = postRepository.save(post);
 
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
                 .path("/{id}")
@@ -35,13 +35,13 @@ public class PostService {
                 .body(convertToDto(savedPost));
     }
 
-    public ResponseEntity<PostDto> updatePost(Long id, Post updatedPost) {
-        Optional<Post> existingPostOptional = postRepository.findById(id);
+    public ResponseEntity<PostDto> updatePost(Long id, PostEntity updatedPost) {
+        Optional<PostEntity> existingPostOptional = postRepository.findById(id);
         if (existingPostOptional.isPresent()) {
-            Post existingPost = existingPostOptional.get();
+            PostEntity existingPost = existingPostOptional.get();
             existingPost.setTitle(updatedPost.getTitle());
             existingPost.setMessage(updatedPost.getMessage());
-            Post savedPost = postRepository.save(existingPost);
+            PostEntity savedPost = postRepository.save(existingPost);
             return ResponseEntity.ok((convertToDto(savedPost)));
         } else {
             return ResponseEntity.notFound().build();
@@ -53,7 +53,7 @@ public class PostService {
     }
 
     public ResponseEntity<?> getPostById(Long id) {
-        Optional<Post> post = postRepository.findById(id);
+        Optional<PostEntity> post = postRepository.findById(id);
         if (post.isPresent())
             return ResponseEntity.ok().body(convertToDto(post.get()));
         else return postNotFoundResponse(id);
@@ -85,7 +85,7 @@ public class PostService {
         return postRepository.existsById(id);
     }
 
-    private PostDto convertToDto(Post post) {
+    private PostDto convertToDto(PostEntity post) {
         PostDto dto = new PostDto();
         dto.setId(post.getId());
         dto.setTitle(post.getTitle());

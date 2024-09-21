@@ -1,8 +1,9 @@
 package com.github.aceton41k.service;
 
 import com.github.aceton41k.dto.LoginUserDto;
-import com.github.aceton41k.dto.RegisterUserDto;
-import com.github.aceton41k.entity.User;
+import com.github.aceton41k.dto.RegisterRequest;
+import com.github.aceton41k.dto.RegisterResponse;
+import com.github.aceton41k.entity.UserEntity;
 import com.github.aceton41k.repository.UserRepository;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -29,20 +30,20 @@ public class AuthenticationService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public User signup(RegisterUserDto input) {
-        User user = new User();
+    public RegisterResponse signup(RegisterRequest input) {
+        UserEntity user = new UserEntity();
                 user.setFullName(input.getFullName());
                 user.setEmail(input.getEmail());
                 user.setPassword(passwordEncoder.encode(input.getPassword()));
 
-        return userRepository.save(user);
+        return convertToDto(userRepository.save(user));
     }
 
     public boolean userExistsByEmail(String email) {
         return userRepository.findByEmail(email).isPresent();
     }
 
-    public User authenticate(LoginUserDto input) {
+    public UserEntity authenticate(LoginUserDto input) {
         Authentication authentication;
 
         try {
@@ -56,6 +57,15 @@ public class AuthenticationService {
             return null;
         }
 
-        return (User) authentication.getPrincipal();
+        return (UserEntity) authentication.getPrincipal();
+    }
+
+    private RegisterResponse convertToDto(UserEntity user) {
+        RegisterResponse dto = new RegisterResponse();
+        dto.setId(user.getId());
+        dto.setFullName(user.getFullName());
+        dto.setPassword(user.getPassword());
+        dto.setEmail(user.getEmail());
+        return dto;
     }
 }

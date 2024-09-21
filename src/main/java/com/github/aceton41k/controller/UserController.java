@@ -1,11 +1,8 @@
 package com.github.aceton41k.controller;
 
 import com.github.aceton41k.dto.UserDto;
-import com.github.aceton41k.entity.User;
 import com.github.aceton41k.service.UserService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
