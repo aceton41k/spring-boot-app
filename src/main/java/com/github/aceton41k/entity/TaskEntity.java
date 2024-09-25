@@ -1,10 +1,7 @@
 package com.github.aceton41k.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -16,6 +13,7 @@ import java.time.Instant;
 @Entity
 @Getter
 @Setter
+@With
 @NoArgsConstructor
 @AllArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
@@ -26,10 +24,10 @@ public class TaskEntity {
     @Column(nullable = false)
     private Long id;
 
-    @Column(nullable = false)
+    @Column
     private String status;
 
-    @Column(nullable = false)
+    @Column()
     private Integer progress;
 
     @CreatedDate

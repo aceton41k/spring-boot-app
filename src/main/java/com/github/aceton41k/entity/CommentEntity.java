@@ -30,17 +30,16 @@ public class CommentEntity {
     private String message;
 
     @CreatedDate
-    @Column(updatable = false, name = "created_at")
+    @Column(updatable = false)
     private Instant createdAt;
 
-    @LastModifiedBy
-    @Column(name = "updated_at")
+    @LastModifiedDate
     private Instant updatedAt;
 
     @CreatedBy
     private Long createdBy;
 
-    @LastModifiedDate
+    @LastModifiedBy
     private Long modifiedBy;
 
 

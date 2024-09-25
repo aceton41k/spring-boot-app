@@ -15,6 +15,8 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static com.github.aceton41k.constant.TaskStatus.*;
+
 @Service
 @Slf4j
 public class TaskService {
@@ -31,58 +33,45 @@ public class TaskService {
 //    private final AtomicInteger progress = new AtomicInteger(0);
 //    private volatile String status = "not started";
 
-    public Long createTask() {
-        TaskEntity savedTask = taskRepository.save(new TaskEntity());
+    public Long createTask(Integer duration) {
+        TaskEntity savedTask = taskRepository.save(new TaskEntity().withProgress(0));
         TaskService taskService = applicationContext.getBean(TaskService.class);
-        taskService.performAsyncTask(savedTask.getId()); // Вызываем асинхронный метод через бин
+        taskService.performAsyncTask(savedTask.getId(), duration); // Вызываем асинхронный метод через бин
         log.info("Task {} created", savedTask.getId());
         return savedTask.getId();
-//        PostEntity savedPost = postRepository.save(post);
-//
-//        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
-//                .path("/{id}")
-//                .buildAndExpand(savedPost.getId())
-//                .toUri();
-//
-//        return ResponseEntity.created(location)
-//                .body(convertToDto(savedPost));
-//
-//        String taskId = UUID.randomUUID().toString(); // Генерируем уникальный ID для задачи
-//        Task taskInfo = new Task();
-//        tasks.put(taskId, taskInfo); // Сохраняем задачу в карту
-//        System.out.println("RUN ASYNC TASK: " + taskId);
-//
-//        return taskId; // Возвращаем ID задачи
-
-
     }
 
     @Async
-    public CompletableFuture<Void> performAsyncTask(Long taskId) {
-//        Task taskInfo = tasks.get(taskId);
+    public CompletableFuture<Void> performAsyncTask(Long taskId, Integer duration) {
         TaskEntity taskEntity = taskRepository.findById(taskId).get();
-        taskEntity.setStatus("in progress");
+        taskEntity.setStatus(IN_PROGRESS);
         Task task = convertToDto(taskEntity);
         taskStore.put(taskId, task);
         taskRepository.save(taskEntity);
-
         try {
-            for (int i = 1; i <= 10; i++) {
-                task.setProgress(i * 10); // Обновляем прогресс
-                log.info("Counter: {}", i);
-                Thread.sleep(1000); // Имитация долгой задачи
+            for (int i = 0; i <= duration; i++) {
+                task.setProgress(task.getProgress() + 100 / duration);
+                if (task.getProgress() > 100) {
+                    task.setProgress(100);
+                    taskEntity.setProgress(100);
+                    task.setStatus(DONE);
+                    taskEntity.setStatus(DONE);
+                    break;
+                }
+                log.info("Progress: {}", task.getProgress());
+                Thread.sleep(1000);
+
+
             }
-        } catch (InterruptedException e) {
+
+        } catch (
+                InterruptedException e) {
             log.error(e.getMessage());
+            task.setStatus(FAILED);
+            taskEntity.setStatus(FAILED);
         } finally {
-            task.setProgress(100); // Устанавливаем 100% по завершению
-            task.setStatus("done");
-            taskEntity.setStatus("done");
-            taskEntity.setProgress(100);
             taskStore.put(taskId, convertToDto(taskEntity));
             taskRepository.save(taskEntity);
-//            taskStore.get(taskId).setProgress(100);
-//            taskStore.get(taskId).setStatus("done");
 
             log.info("Task {} finished", taskId);
         }
@@ -98,7 +87,7 @@ public class TaskService {
     public List<Task> getAllTasks() {
         List<Task> tasksFromDb = taskRepository.findAll().stream().map(this::convertToDto).toList();
         for (Task task : tasksFromDb) {
-            if(task.getStatus().equals("in progress"))
+            if (task.getStatus().equals("in progress"))
                 task.setProgress(taskStore.get(task.getId()).getProgress());
         }
         return tasksFromDb;

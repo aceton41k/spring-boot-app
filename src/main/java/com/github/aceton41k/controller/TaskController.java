@@ -3,10 +3,7 @@ package com.github.aceton41k.controller;
 import com.github.aceton41k.dto.Task;
 import com.github.aceton41k.service.TaskService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -18,8 +15,8 @@ public class TaskController {
     private TaskService taskService;
 
     @GetMapping("/create")
-    public String createTask() {
-        Long taskId = taskService.createTask();
+    public String createTask(@RequestParam Integer duration) {
+        Long taskId = taskService.createTask(duration);
         return "Task created with ID: " + taskId;
     }
 

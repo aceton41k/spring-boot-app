@@ -1,19 +1,18 @@
 package com.github.aceton41k.service;
 
 import com.github.aceton41k.dto.CommentDto;
-import com.github.aceton41k.dto.CommentsResponse;
 import com.github.aceton41k.entity.CommentEntity;
 import com.github.aceton41k.entity.PostEntity;
 import com.github.aceton41k.repository.CommentRepository;
 import com.github.aceton41k.repository.PostRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -29,60 +28,56 @@ public class CommentService {
     @Autowired
     private PostService postService;
 
-    public ResponseEntity<CommentsResponse> getCommentsByPostId(Long postId) {
-        List<CommentEntity> comments = commentRepository.findByPostId(postId);
-        List<CommentDto> commentDtos = comments.stream()
-                .map(this::convertToDto)
-                .toList();
-        return ResponseEntity.ok(new CommentsResponse()
-                .withComments(commentDtos)
-                .withTotal(comments.size()));
-    }
-
-    public ResponseEntity<?> addComment(Long postId, CommentEntity comment) {
-        if (!postService.existsById(postId)) {
-            return postService.postNotFoundResponse(postId);
-        }
-
-        comment.setPost(new PostEntity().withId(postId));
-        CommentEntity savedComment = commentRepository.save(comment);
-        return ResponseEntity.ok(savedComment);
-    }
-
-    public ResponseEntity<?> updateComment(Long postId, Long commentId, CommentEntity comment) {
-
-        Optional<PostEntity> postOptional = postRepository.findById(postId);
-        PostEntity post;
-
-        if (postOptional.isEmpty()) {
-            return postService.postNotFoundResponse(postId);
+    public Optional<?> getCommentsByPostId(Long postId, Integer page, Integer size) {
+        if (postRepository.existsById(postId)) {
+            Pageable pageable = PageRequest.of(page, size);
+            return Optional.of(getAllComments(pageable));
         } else
-            post = postOptional.get();
-
-        Optional<CommentEntity> commentOptional = commentRepository.findById(commentId);
-        CommentEntity updatedComment;
-
-        if (commentOptional.isEmpty()) {
-            return commentNotFoundResponse(commentId);
-        } else
-            updatedComment = commentOptional.get();
-
-        updatedComment.setMessage(comment.getMessage());
-        updatedComment.setPost(post);
-
-        return ResponseEntity.ok(convertToDto(commentRepository.save(updatedComment)));
+            return Optional.empty();
     }
 
-    public ResponseEntity<?> deleteComment(Long postId, Long commentId) {
-        if (!postRepository.existsById(postId)) {
-            return postService.postNotFoundResponse(postId);
-        }
+    public Optional<?> addComment(Long postId, CommentEntity comment) {
+        Optional<PostEntity> postEntityOptional = postRepository.findById(postId);
+        if (postEntityOptional.isPresent()) {
+            comment.setPost(postEntityOptional.get());
+            CommentEntity savedComment = commentRepository.save(comment);
+            return Optional.of(convertToDto(savedComment));
+        } else
+            return Optional.empty();
+    }
 
-        if (!commentRepository.existsById(commentId)) {
-            return commentNotFoundResponse(commentId);
-        }
-        commentRepository.deleteById(commentId);
-        return ResponseEntity.noContent().build();
+
+    public Optional<CommentDto> updateComment(Long postId, Long commentId, CommentEntity comment) {
+        if (!postRepository.existsById(postId))
+            throw new EntityNotFoundException("Post with id %d was not found".formatted(postId));
+
+        // Поиск комментария по ID
+        return commentRepository.findById(commentId)
+                .map(existingComment -> {
+                    // Обновляем данные комментария
+                    existingComment.setMessage(comment.getMessage());
+                    CommentEntity savedComment = commentRepository.save(existingComment);
+
+                    // Возвращаем обновленный комментарий в виде DTO
+                    return convertToDto(savedComment);
+                });
+    }
+
+
+    public Optional<?> deleteComment(Long postId, Long commentId) {
+        if (!postRepository.existsById(postId))
+            return Optional.of("Post with id %d was not found".formatted(postId));
+
+        if (commentRepository.existsById(commentId)) {
+            commentRepository.deleteById(commentId);
+            return Optional.empty();
+        } else
+            return Optional.of("Comment with id %d was not found".formatted(commentId));
+
+    }
+
+    public Page<CommentDto> getAllComments(Pageable pageable) {
+        return commentRepository.findAll(pageable).map(this::convertToDto);
     }
 
     private CommentDto convertToDto(CommentEntity comment) {
@@ -92,12 +87,7 @@ public class CommentService {
         dto.setCreatedAt(comment.getCreatedAt());
         dto.setUpdatedAt(comment.getUpdatedAt());
         dto.setCreatedBy(comment.getCreatedBy());
+        dto.setModifiedBy(comment.getModifiedBy());
         return dto;
-    }
-
-    protected ResponseEntity<?> commentNotFoundResponse(Long commentId) {
-        var error = new HashMap<>();
-        error.put("error", "Comment with id %d was not found".formatted(commentId));
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 }
