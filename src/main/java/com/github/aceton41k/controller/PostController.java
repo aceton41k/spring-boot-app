@@ -18,11 +18,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.net.URI;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/posts")
 public class PostController {
 
     @Autowired
@@ -36,53 +38,63 @@ public class PostController {
             @ApiResponse(responseCode = "200", description = "Successfully registered",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = PostDto.class))),
     })
-    @PostMapping("/posts")
+    @PostMapping
     public ResponseEntity<PostDto> createPost(@RequestBody PostEntity post) {
-        return postService.createPost(post);
+        PostDto savedPost = postService.createPost(post);
+
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(savedPost.getId())
+                .toUri();
+        return ResponseEntity.created(location)
+                .body(savedPost);
     }
 
-    @PutMapping("/posts/{id}")
+    @PutMapping("/{id}")
     public ResponseEntity<PostDto> updatePost(@PathVariable("id") long id, @RequestBody PostEntity updatedPost) {
-        return postService.updatePost(id, updatedPost);
+        PostDto post = postService.updatePost(id, updatedPost);
+        return ResponseEntity.ok(post);
     }
 
     @Operation(summary = "Get all posts")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Returns list of post with pagination",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = PostDto.class),
-                    examples = @ExampleObject(value = SwaggerExamples.GET_POSTS_RESPONSE)))
+                            examples = @ExampleObject(value = SwaggerExamples.GET_POSTS_RESPONSE)))
     })
-    @GetMapping("/posts")
-    public ResponseEntity<Page<PostDto>> getAllPosts(@RequestParam(value = "page", defaultValue = "0") int page,
-                                                     @RequestParam(value = "size", defaultValue = "10") int size) {
+    @GetMapping
+    public ResponseEntity<Page<PostDto>> getAllPosts(@RequestParam(value = "page", defaultValue = "0") Integer page,
+                                                     @RequestParam(value = "size", defaultValue = "10") Integer size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<PostDto> posts = postService.getAllPosts(pageable);
         return ResponseEntity.ok(posts);
     }
 
     @Operation(summary = "Get post by ID")
-    @GetMapping("/posts/{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<?> getPostById(@PathVariable("id") Long id) {
-        return postService.getPostById(id);
+        PostDto post = postService.getPostById(id);
+        return ResponseEntity.ok(post);
     }
 
     @Operation(summary = "Delete post by ID")
-    @DeleteMapping("/posts/{id}")
-    public ResponseEntity<Void> deletePost(@PathVariable("id") Long id) {
-        return postService.deletePost(id);
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deletePost(@PathVariable("id") Long id) {
+        postService.deletePost(id);
+        return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "Delete posts by list of IDs")
-    @DeleteMapping("/posts")
+    @DeleteMapping
     public ResponseEntity<Void> deletePosts(@RequestParam List<Long> ids) {
         return postService.deletePosts(ids);
     }
 
     @Operation(summary = "Method with exception for example")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "500",
-                content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProblemDetail.class),
-                        examples = @ExampleObject(value = SwaggerExamples.INTERNAL_ERROR_RESPONSE)))
+            @ApiResponse(responseCode = "500",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProblemDetail.class),
+                            examples = @ExampleObject(value = SwaggerExamples.INTERNAL_ERROR_RESPONSE)))
     })
     @GetMapping("/ex")
     public ResponseEntity<?> ex() {

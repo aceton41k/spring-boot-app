@@ -3,18 +3,17 @@ package com.github.aceton41k.service;
 import com.github.aceton41k.dto.PostDto;
 import com.github.aceton41k.entity.PostEntity;
 import com.github.aceton41k.repository.PostRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import java.net.URI;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
+
+import static com.github.aceton41k.constant.ErrorMessages.POST_NOT_FOUND;
 
 @Service
 public class PostService {
@@ -22,67 +21,54 @@ public class PostService {
     @Autowired
     private PostRepository postRepository;
 
-    public ResponseEntity<PostDto> createPost(PostEntity post) {
-
+    public PostDto createPost(PostEntity post) {
         PostEntity savedPost = postRepository.save(post);
-
-        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
-                .path("/{id}")
-                .buildAndExpand(savedPost.getId())
-                .toUri();
-
-        return ResponseEntity.created(location)
-                .body(convertToDto(savedPost));
+        return convertToDto(savedPost);
     }
 
-    public ResponseEntity<PostDto> updatePost(Long id, PostEntity updatedPost) {
-        Optional<PostEntity> existingPostOptional = postRepository.findById(id);
-        if (existingPostOptional.isPresent()) {
-            PostEntity existingPost = existingPostOptional.get();
-            existingPost.setTitle(updatedPost.getTitle());
-            existingPost.setMessage(updatedPost.getMessage());
-            PostEntity savedPost = postRepository.save(existingPost);
-            return ResponseEntity.ok((convertToDto(savedPost)));
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+    public PostDto updatePost(Long id, PostEntity updatedPost) {
+
+        return postRepository.findById(id)
+                .map(postEntity -> {
+                    postEntity.setTitle(updatedPost.getTitle());
+                    postEntity.setMessage(updatedPost.getMessage());
+                    PostEntity savedPost = postRepository.save(postEntity);
+                    return convertToDto(savedPost);
+                })
+                .orElseThrow(() -> new EntityNotFoundException(POST_NOT_FOUND.formatted(id)));
     }
 
     public Page<PostDto> getAllPosts(Pageable pageable) {
         return postRepository.findAll(pageable).map(this::convertToDto);
     }
 
-    public ResponseEntity<?> getPostById(Long id) {
+    public PostDto getPostById(Long id) {
         Optional<PostEntity> post = postRepository.findById(id);
-        if (post.isPresent())
-            return ResponseEntity.ok().body(convertToDto(post.get()));
-        else return postNotFoundResponse(id);
+
+        return post
+                .map(this::convertToDto)
+                .orElseThrow(() -> new EntityNotFoundException(POST_NOT_FOUND.formatted(id)));
+
     }
 
-    public ResponseEntity<Void> deletePost(Long id) {
+    public void deletePost(Long id) {
         if (postRepository.existsById(id)) {
             postRepository.deleteById(id);
-            return ResponseEntity.noContent().build();
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+        } else
+            throw new EntityNotFoundException(POST_NOT_FOUND.formatted(id));
     }
 
     public ResponseEntity<Void> deletePosts(List<Long> ids) {
         if (ids == null || ids.isEmpty()) {
             return ResponseEntity.badRequest().build();
         }
-
-        for (Long id : ids) {
+        ids.forEach(id -> {
             if (postRepository.existsById(id)) {
                 postRepository.deleteById(id);
             }
-        }
-        return ResponseEntity.noContent().build();
-    }
+        });
 
-    public boolean existsById(Long id) {
-        return postRepository.existsById(id);
+        return ResponseEntity.noContent().build();
     }
 
     private PostDto convertToDto(PostEntity post) {
@@ -95,11 +81,5 @@ public class PostService {
         dto.setCreatedBy(post.getCreatedBy());
         dto.setModifiedBy(post.getModifiedBy());
         return dto;
-    }
-
-    protected ResponseEntity<?> postNotFoundResponse(Long postId) {
-        var error = new HashMap<>();
-        error.put("error", "Post with id %s was not found".formatted(postId));
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 }

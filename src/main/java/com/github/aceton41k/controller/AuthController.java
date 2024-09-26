@@ -1,7 +1,10 @@
 package com.github.aceton41k.controller;
 
 import com.github.aceton41k.constant.ErrorMessages;
-import com.github.aceton41k.dto.*;
+import com.github.aceton41k.dto.LoginResponse;
+import com.github.aceton41k.dto.LoginUserDto;
+import com.github.aceton41k.dto.RegisterRequest;
+import com.github.aceton41k.dto.RegisterResponse;
 import com.github.aceton41k.entity.UserEntity;
 import com.github.aceton41k.service.AuthenticationService;
 import com.github.aceton41k.service.JwtService;
@@ -11,13 +14,15 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.persistence.EntityExistsException;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 @RequestMapping("/auth")
 @RestController
@@ -37,16 +42,12 @@ public class AuthController {
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = RegisterResponse.class))),
             @ApiResponse(responseCode = "409",
                     content = @Content(mediaType = "application/json",
-                            examples = @ExampleObject(value = "{\"error\": \"" + ErrorMessages.EMAIL_ALREADY_EXISTS + "\"}"),
-                            schema = @Schema(implementation = ErrorResponse.class)))
+                            schema = @Schema(implementation = EntityExistsException.class)))
     })
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@RequestBody RegisterRequest registerUserDto) {
         if (authenticationService.userExistsByEmail(registerUserDto.getEmail())) {
-            ErrorResponse errorResponse = new ErrorResponse(ErrorMessages.EMAIL_ALREADY_EXISTS);
-            return ResponseEntity
-                    .status(HttpStatus.CONFLICT)
-                    .body(errorResponse);
+            throw new EntityExistsException(ErrorMessages.EMAIL_ALREADY_EXISTS);
         }
 
         RegisterResponse registeredUser = authenticationService.signup(registerUserDto);
@@ -61,18 +62,15 @@ public class AuthController {
             @ApiResponse(responseCode = "401", description = "Invalid email or password",
                     content = @Content(mediaType = "application/json",
                             examples = @ExampleObject(value = "{\"error\": \"" + ErrorMessages.INVALID_EMAIL_PASSWORD + "\"}"),
-                            schema = @Schema(implementation = ErrorResponse.class)))
+                            schema = @Schema(implementation = ResponseStatusException.class)))
     })
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginUserDto loginUserDto) {
         UserEntity authenticatedUser = authenticationService.authenticate(loginUserDto);
 
         if (authenticatedUser == null) {
-            ErrorResponse errorResponse = new ErrorResponse(ErrorMessages.INVALID_EMAIL_PASSWORD);
+            throw new BadCredentialsException(ErrorMessages.INVALID_EMAIL_PASSWORD);
 
-            return ResponseEntity
-                    .status(HttpStatus.UNAUTHORIZED)
-                    .body(errorResponse);
         } else {
             String jwtToken = jwtService.generateToken(authenticatedUser);
             LoginResponse loginResponse = new LoginResponse().withToken(jwtToken).withExpiresIn(jwtService.getExpirationTime());

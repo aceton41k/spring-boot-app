@@ -1,36 +1,36 @@
 package com.github.aceton41k.entity;
 
-
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.Instant;
 
+@Table(name = "tasks")
+@Entity
 @Getter
 @Setter
-@Entity
-@Table(name = "comments")
+@With
+@NoArgsConstructor
+@AllArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
-public class CommentEntity {
+public class TaskEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(nullable = false)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "post_id", nullable = false)
-    private PostEntity post;
+    @Column
+    private String status;
 
-    private String message;
+    @Column()
+    private Integer progress;
 
     @CreatedDate
-    @Column(updatable = false)
     private Instant createdAt;
 
     @LastModifiedDate
@@ -38,9 +38,4 @@ public class CommentEntity {
 
     @CreatedBy
     private Long createdBy;
-
-    @LastModifiedBy
-    private Long modifiedBy;
-
-
 }
