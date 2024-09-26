@@ -63,8 +63,8 @@ public class PostController {
                             examples = @ExampleObject(value = SwaggerExamples.GET_POSTS_RESPONSE)))
     })
     @GetMapping
-    public ResponseEntity<Page<PostDto>> getAllPosts(@RequestParam(value = "page", defaultValue = "0") int page,
-                                                     @RequestParam(value = "size", defaultValue = "10") int size) {
+    public ResponseEntity<Page<PostDto>> getAllPosts(@RequestParam(value = "page", defaultValue = "0") Integer page,
+                                                     @RequestParam(value = "size", defaultValue = "10") Integer size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<PostDto> posts = postService.getAllPosts(pageable);
         return ResponseEntity.ok(posts);
