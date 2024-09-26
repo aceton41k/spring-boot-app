@@ -2,7 +2,6 @@ package com.github.aceton41k.service;
 
 import com.github.aceton41k.dto.CommentDto;
 import com.github.aceton41k.entity.CommentEntity;
-import com.github.aceton41k.entity.PostEntity;
 import com.github.aceton41k.repository.CommentRepository;
 import com.github.aceton41k.repository.PostRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -13,7 +12,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
+import static com.github.aceton41k.constant.ErrorMessages.COMMENT_NOT_FOUND;
+import static com.github.aceton41k.constant.ErrorMessages.POST_NOT_FOUND;
 
 @Service
 @Slf4j
@@ -28,51 +28,58 @@ public class CommentService {
     @Autowired
     private PostService postService;
 
-    public Optional<?> getCommentsByPostId(Long postId, Integer page, Integer size) {
+    public Page<CommentDto> getCommentsByPostId(Long postId, Integer page, Integer size) {
         if (postRepository.existsById(postId)) {
             Pageable pageable = PageRequest.of(page, size);
-            return Optional.of(getAllComments(pageable));
+            return getAllComments(pageable);
         } else
-            return Optional.empty();
+            throw new EntityNotFoundException(POST_NOT_FOUND.formatted(postId));
     }
 
-    public Optional<?> addComment(Long postId, CommentEntity comment) {
-        Optional<PostEntity> postEntityOptional = postRepository.findById(postId);
-        if (postEntityOptional.isPresent()) {
-            comment.setPost(postEntityOptional.get());
-            CommentEntity savedComment = commentRepository.save(comment);
-            return Optional.of(convertToDto(savedComment));
-        } else
-            return Optional.empty();
-    }
+    public CommentDto getComment(Long postId, Long commentId) {
 
-
-    public Optional<CommentDto> updateComment(Long postId, Long commentId, CommentEntity comment) {
         if (!postRepository.existsById(postId))
-            throw new EntityNotFoundException("Post with id %d was not found".formatted(postId));
+            throw new EntityNotFoundException(POST_NOT_FOUND.formatted(postId));
 
-        // Поиск комментария по ID
         return commentRepository.findById(commentId)
+                .map(this::convertToDto)
+                .orElseThrow(() -> new EntityNotFoundException(COMMENT_NOT_FOUND.formatted(commentId)));
+    }
+
+    public CommentDto addComment(Long postId, CommentEntity comment) {
+
+        return postRepository.findById(postId)
+                .map(o -> {
+                    comment.setPost(o);
+                    return convertToDto(commentRepository.save(comment));
+                })
+                .orElseThrow(() -> new EntityNotFoundException(POST_NOT_FOUND.formatted(postId)));
+    }
+
+
+    public CommentDto updateComment(Long postId, Long commentId, CommentEntity comment) {
+        if (!postRepository.existsById(postId))
+            throw new EntityNotFoundException(POST_NOT_FOUND.formatted(postId));
+
+        return commentRepository.findById(commentId)
+
                 .map(existingComment -> {
-                    // Обновляем данные комментария
                     existingComment.setMessage(comment.getMessage());
                     CommentEntity savedComment = commentRepository.save(existingComment);
-
-                    // Возвращаем обновленный комментарий в виде DTO
                     return convertToDto(savedComment);
-                });
+                })
+                .orElseThrow(() -> new EntityNotFoundException(COMMENT_NOT_FOUND.formatted(commentId)));
     }
 
 
-    public Optional<?> deleteComment(Long postId, Long commentId) {
+    public void deleteComment(Long postId, Long commentId) {
         if (!postRepository.existsById(postId))
-            return Optional.of("Post with id %d was not found".formatted(postId));
+            throw new EntityNotFoundException(POST_NOT_FOUND.formatted(postId));
 
         if (commentRepository.existsById(commentId)) {
             commentRepository.deleteById(commentId);
-            return Optional.empty();
         } else
-            return Optional.of("Comment with id %d was not found".formatted(commentId));
+            throw new EntityNotFoundException(COMMENT_NOT_FOUND.formatted(commentId));
 
     }
 

@@ -15,14 +15,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
-import java.util.HashMap;
 import java.util.List;
 
 @RestController
@@ -54,8 +52,8 @@ public class PostController {
 
     @PutMapping("/{id}")
     public ResponseEntity<PostDto> updatePost(@PathVariable("id") long id, @RequestBody PostEntity updatedPost) {
-        var postDtoOptional = postService.updatePost(id, updatedPost);
-        return postDtoOptional.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+        PostDto post = postService.updatePost(id, updatedPost);
+        return ResponseEntity.ok(post);
     }
 
     @Operation(summary = "Get all posts")
@@ -75,17 +73,15 @@ public class PostController {
     @Operation(summary = "Get post by ID")
     @GetMapping("/{id}")
     public ResponseEntity<?> getPostById(@PathVariable("id") Long id) {
-        var post = postService.getPostById(id);
-        if(post != null) {
-            return ResponseEntity.ok().body((post));
-        }
-        else return postNotFoundResponse(id);
+        PostDto post = postService.getPostById(id);
+        return ResponseEntity.ok(post);
     }
 
     @Operation(summary = "Delete post by ID")
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletePost(@PathVariable("id") Long id) {
-        return postService.deletePost(id);
+    public ResponseEntity<?> deletePost(@PathVariable("id") Long id) {
+        postService.deletePost(id);
+        return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "Delete posts by list of IDs")
@@ -103,11 +99,5 @@ public class PostController {
     @GetMapping("/ex")
     public ResponseEntity<?> ex() {
         throw new RuntimeException("Some error");
-    }
-
-    static ResponseEntity<?> postNotFoundResponse(Long postId) {
-        var error = new HashMap<>();
-        error.put("error", "Post with id %s was not found".formatted(postId));
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 }
