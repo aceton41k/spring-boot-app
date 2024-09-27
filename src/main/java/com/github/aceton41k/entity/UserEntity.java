@@ -20,7 +20,7 @@ import java.util.List;
 @EntityListeners(AuditingEntityListener.class)
 public class UserEntity implements UserDetails {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false)
     private Long id;
 

@@ -1,15 +1,16 @@
 package com.github.aceton41k.service;
 
-import com.github.aceton41k.dto.Task;
+import com.github.aceton41k.dto.TaskDto;
 import com.github.aceton41k.entity.TaskEntity;
 import com.github.aceton41k.repository.TaskRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -21,7 +22,7 @@ import static com.github.aceton41k.constant.TaskStatus.*;
 @Slf4j
 public class TaskService {
 
-    private final Map<Long, Task> taskStore = new ConcurrentHashMap<>();
+    private final Map<Long, TaskDto> taskStore = new ConcurrentHashMap<>();
 
     @Autowired
     private ApplicationContext applicationContext; // Контекст для получения текущего бина
@@ -33,31 +34,28 @@ public class TaskService {
 //    private final AtomicInteger progress = new AtomicInteger(0);
 //    private volatile String status = "not started";
 
-    public Long createTask(Integer duration) {
-        TaskEntity savedTask = taskRepository.save(new TaskEntity().withProgress(0));
+    public TaskDto createTask(Integer duration) {
+        TaskEntity savedTask = taskRepository.save(
+                new TaskEntity()
+                        .withProgress(0)
+                        .withStatus(IDLE));
         TaskService taskService = applicationContext.getBean(TaskService.class);
         taskService.performAsyncTask(savedTask.getId(), duration); // Вызываем асинхронный метод через бин
-        log.info("Task {} created", savedTask.getId());
-        return savedTask.getId();
+        log.debug("Task {} created", savedTask.getId());
+        return convertToDto(savedTask);
     }
 
     @Async
     public CompletableFuture<Void> performAsyncTask(Long taskId, Integer duration) {
         TaskEntity taskEntity = taskRepository.findById(taskId).get();
         taskEntity.setStatus(IN_PROGRESS);
-        Task task = convertToDto(taskEntity);
+        TaskDto task = convertToDto(taskEntity);
         taskStore.put(taskId, task);
         taskRepository.save(taskEntity);
         try {
-            for (int i = 0; i <= duration; i++) {
+            for (int i = 0; i < duration; i++) {
                 task.setProgress(task.getProgress() + 100 / duration);
-                if (task.getProgress() > 100) {
-                    task.setProgress(100);
-                    taskEntity.setProgress(100);
-                    task.setStatus(DONE);
-                    taskEntity.setStatus(DONE);
-                    break;
-                }
+
                 log.info("Progress: {}", task.getProgress());
                 Thread.sleep(1000);
 
@@ -70,6 +68,10 @@ public class TaskService {
             task.setStatus(FAILED);
             taskEntity.setStatus(FAILED);
         } finally {
+            task.setProgress(100);
+            taskEntity.setProgress(100);
+            task.setStatus(DONE);
+            taskEntity.setStatus(DONE);
             taskStore.put(taskId, convertToDto(taskEntity));
             taskRepository.save(taskEntity);
 
@@ -78,23 +80,24 @@ public class TaskService {
         return CompletableFuture.completedFuture(null);
     }
 
-    public Task getTaskStatus(Long id) {
-        Task task = taskStore.get(id); // Извлекаем DTO из хранилища
+    public TaskDto getTask(Long id) {
+        TaskDto task = taskStore.get(id); // Извлекаем DTO из хранилища
         // if task finished get it from db
         return Objects.requireNonNullElseGet(task, () -> convertToDto(taskRepository.findById(id).get())); // Возвращаем текущий прогресс и статус
     }
 
-    public List<Task> getAllTasks() {
-        List<Task> tasksFromDb = taskRepository.findAll().stream().map(this::convertToDto).toList();
-        for (Task task : tasksFromDb) {
-            if (task.getStatus().equals("in progress"))
-                task.setProgress(taskStore.get(task.getId()).getProgress());
-        }
-        return tasksFromDb;
+    public Page<TaskDto> getAllTasks(Pageable pageable) {
+        Page<TaskDto> tasks = taskRepository.findAll(pageable).map(this::convertToDto);
+        tasks.forEach(taskDto -> {
+            if (taskDto.getStatus().equals("in progress") && taskStore.get(taskDto.getId()) != null)
+                taskDto.setProgress(taskStore.get(taskDto.getId()).getProgress());
+        });
+        return tasks;
+//
     }
 
-    private Task convertToDto(TaskEntity entity) {
-        Task dto = new Task();
+    private TaskDto convertToDto(TaskEntity entity) {
+        TaskDto dto = new TaskDto();
         dto.setStatus(entity.getStatus());
         dto.setProgress(entity.getProgress());
         dto.setId(entity.getId());
