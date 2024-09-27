@@ -9,9 +9,7 @@ import java.time.Instant;
 @Getter
 @Setter
 @NoArgsConstructor
-public class Task {
-//    private final AtomicInteger progress = new AtomicInteger(0);
-//    private volatile String status = "not started";
+public class TaskDto {
 
     private Long id;
     private Integer progress;
